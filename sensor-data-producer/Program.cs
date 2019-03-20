@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System.Threading;
 using System.IO;
 using System.Collections.Generic;
+using System.Configuration;
 
 namespace SensorDataProducer
 {
@@ -37,14 +38,18 @@ namespace SensorDataProducer
 
     class Program
     {
-        private const string ENDPOINT_URI = "https://totalcosmosdb.documents.azure.com:443/";
-        private const string PRIMARY_KEY = "SZE3CwFg975P9NVrluMqyYOeuYfMG0LMhuhuNoRiaEUl5VkjcgIHeg5VQMY8BwozfFu1je6GUYKhErc1ss91gQ==";
-        private const string DATABASE = "poc";
-        private const string COLLECTION = "rawdata";
-
         static async Task Main(string[] args)
         {
             string sensorId = string.Empty;
+
+            var cosmosDBInfo = new CosmosDBInfo()
+            {
+                EndpointUri = ConfigurationManager.AppSettings?["CosmosDB:EndpointURI"],
+                Key = ConfigurationManager.AppSettings?["CosmosDB:Key"],
+                Database = ConfigurationManager.AppSettings?["CosmosDB:Database"],
+                Collection = ConfigurationManager.AppSettings?["CosmosDB:Collection:Raw"]
+            };
+
 
             if (args.Count() == 1)
             {
@@ -69,7 +74,7 @@ namespace SensorDataProducer
                 }
                 
                 Int32.TryParse(split[0], out s);
-                Int32.TryParse(split[0], out e);
+                Int32.TryParse(split[1], out e);
             } else 
             {
                 s = 1;
@@ -84,14 +89,6 @@ namespace SensorDataProducer
 
             var tasks = new List<Task>();
             var cts = new CancellationTokenSource();
-
-            var cosmosDBInfo = new CosmosDBInfo()
-            {
-                EndpointUri = ENDPOINT_URI,
-                Key = PRIMARY_KEY,
-                Database = DATABASE,
-                Collection = COLLECTION
-            };
 
             var simulator = new Simulator(cosmosDBInfo, cts.Token);
 
@@ -117,28 +114,27 @@ namespace SensorDataProducer
     class Simulator {
 
         private CancellationToken _token;
+        private DocumentClient _client;
         private CosmosDBInfo _cosmosDB;
 
         public Simulator(CosmosDBInfo cosmosDB, CancellationToken token)
         {
             _token = token;
             _cosmosDB = cosmosDB;
+            _client = new DocumentClient(
+                new Uri(_cosmosDB.EndpointUri),
+                _cosmosDB.Key,
+                new ConnectionPolicy { ConnectionMode = ConnectionMode.Direct, ConnectionProtocol = Protocol.Tcp }
+                );
         }
 
         public async Task Run(int sensorId)
         {
-            DocumentClient client;
             Random rnd = new Random();
 
-            client = new DocumentClient(
-                new Uri(_cosmosDB.EndpointUri), 
-                _cosmosDB.Key, 
-                new ConnectionPolicy { ConnectionMode = ConnectionMode.Direct, ConnectionProtocol = Protocol.Tcp } 
-                );
+            var database = await _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosDB.Database });
 
-            var database = await client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosDB.Database });
-
-            var collection = await client.CreateDocumentCollectionIfNotExistsAsync(
+            var collection = await _client.CreateDocumentCollectionIfNotExistsAsync(
                 UriFactory.CreateDatabaseUri(_cosmosDB.Database), 
                 new DocumentCollection { Id = _cosmosDB.Collection }
                 );
@@ -158,7 +154,7 @@ namespace SensorDataProducer
 
                 try
                 {
-                    await client.CreateDocumentAsync(
+                    await _client.CreateDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_cosmosDB.Database, _cosmosDB.Collection), 
                         sensorData);
                 }
