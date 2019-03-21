@@ -150,7 +150,7 @@ namespace SensorDataProducer
                     TimeStamp = DateTime.UtcNow.ToString("o")
                 };
 
-                Console.WriteLine(sensorData + "[{0}]", DateTime.Now.ToString("o"));
+                Console.WriteLine(sensorData);
 
                 try
                 {
