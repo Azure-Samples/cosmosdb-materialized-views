@@ -61,24 +61,20 @@ if [ $COLLECTION_EXISTS == "false" ]; then
    1> ./logs/060-cosmosdb-collection-create-mv.log
 fi
 
-echo 'creating app service plan'
-az appservice plan create -g $RESOURCE_GROUP -n $PLAN_NAME \
---number-of-workers 1 --sku 'P1v2' --location $LOCATION \
--o json \
-1> ./logs/070-appservice-plan.log
-
-echo 'creating AppInsights'
+echo 'creating appinsights'
 az resource create --resource-group $RESOURCE_GROUP --resource-type "Microsoft.Insights/components" \
 --name ${FUNCTIONAPP_NAME}appinsights --location $LOCATION --properties '{"ApplicationId":"$ROOT_NAME","Application_Type":"other","Flow_Type":"Redfield"}' \
 -o json \
 1> ./logs/080-appinsights.log
 
-echo 'getting AppInsights instrumentation key'
+echo 'getting appinsights instrumentation key'
 APPINSIGHTS_INSTRUMENTATIONKEY=`az resource show -g $RESOURCE_GROUP -n ${FUNCTIONAPP_NAME}appinsights --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv`
 
 echo 'creating function app'
 az functionapp create -g $RESOURCE_GROUP -n $FUNCTIONAPP_NAME \
 --plan $PLAN_NAME \
+--consumption-plan-location $LOCATION
+--app-insights-key $APPINSIGHTS_INSTRUMENTATIONKEY
 --storage-account $STORAGE_ACCOUNT \
 -o json \
 1> ./logs/090-functionapp.log
