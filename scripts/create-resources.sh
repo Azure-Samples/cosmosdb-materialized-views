@@ -1,4 +1,7 @@
 #!/bin/bash
+
+mkdir logs &>/dev/null
+
 set -euo pipefail
 
 export ROOT_NAME='mvsample'
@@ -13,6 +16,7 @@ export COSMOSDB_COLLECTION_NAME_MV='view'
 export COSMOSDB_RU=1000
 export PLAN_NAME="${ROOT_NAME}plan"
 export FUNCTIONAPP_NAME="MaterializedViewProcessor"
+
 
 echo 'creating resource group'
 az group create -n $RESOURCE_GROUP -l $LOCATION -o json \
