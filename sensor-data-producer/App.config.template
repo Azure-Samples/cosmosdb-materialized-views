@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <appSettings>
+    <add key="CosmosDB:EndpointURI" value="{URI}"/>
+    <add key="CosmosDB:Key" value="{KEY}"/>
+    <add key="CosmosDB:Database" value="{DB}"/>
+    <add key="CosmosDB:Collection:Raw" value="{RAW}"/>
+  </appSettings>
+</configuration>
+

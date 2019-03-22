@@ -1,7 +1,14 @@
 #!/bin/bash
 
+echo 'starting deployment'
 
-echo "checking prerequisistes"
+PP=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+mkdir logs &>/dev/null
+
+set -euo pipefail
+
+echo "checking prerequisites"
 
 HAS_AZ=`command -v az`
 if [ -z HAS_AZ ]; then
@@ -21,15 +28,10 @@ fi
 HAS_DOTNET=`command -v dotnet`
 if [ -z HAS_DOTNET ]; then
     echo "dotnet not found"
-    echo "please install it as it is needed by the script"
+    echo "please install .NET Core it as it is needed by the script"
+    echo "https://dotnet.microsoft.com/download"
     exit 1
 fi
-
-echo 'starting deployment'
-
-mkdir logs &>/dev/null
-
-set -euo pipefail
 
 export ROOT_NAME='mvsample'
 export LOCATION='eastus'
@@ -47,18 +49,18 @@ export FUNCTIONAPP_NAME="MaterializedViewProcessor"
 
 echo 'creating resource group'
 az group create -n $RESOURCE_GROUP -l $LOCATION -o json \
-1> ./logs/010-group-create.log
+1> $PP/logs/010-group-create.log
 
 echo 'creating storage account'
 az storage account create -n $STORAGE_ACCOUNT -g $RESOURCE_GROUP --sku Standard_LRS \
-1> ./logs/020-storage-account.log
+1> $PP/logs/020-storage-account.log
 
 echo 'creating cosmosdb account'
 SERVER_EXISTS=`az cosmosdb check-name-exists -n $COSMOSDB_SERVER_NAME -o tsv`
 if [ $SERVER_EXISTS == "false" ]; then
     az cosmosdb create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME \
     -o json \
-    1> ./logs/030-cosmosdb-create.log
+    1> $PP/logs/030-cosmosdb-create.log
 fi
 
 echo 'creating cosmosdb database'
@@ -67,7 +69,7 @@ if [ $DB_EXISTS == "false" ]; then
     az cosmosdb database create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME \
         --db-name $COSMOSDB_DATABASE_NAME \
         -o json \
-        1> ./logs/040-cosmosdb-database-create.log
+        1> $PP/logs/040-cosmosdb-database-create.log
 fi
 
 echo 'creating cosmosdb raw collection'
@@ -79,7 +81,7 @@ if [ $COLLECTION_EXISTS == "false" ]; then
     --indexing-policy '{ "indexingMode": "none", "automatic": false }' \
     --throughput $COSMOSDB_RU \
     -o json \
-    1> ./logs/050-cosmosdb-collection-create-raw.log
+    1> $PP/logs/050-cosmosdb-collection-create-raw.log
 fi
 
 echo 'creating cosmosdb view collection'
@@ -91,17 +93,17 @@ if [ $COLLECTION_EXISTS == "false" ]; then
     --indexing-policy '{ "indexingMode": "none", "automatic": false }' \
     --throughput $COSMOSDB_RU \
     -o json \
-   1> ./logs/060-cosmosdb-collection-create-mv.log
+   1> $PP/logs/060-cosmosdb-collection-create-mv.log
 fi
 
 echo 'creating appinsights'
 az resource create --resource-group $RESOURCE_GROUP --resource-type "Microsoft.Insights/components" \
---name ${FUNCTIONAPP_NAME}appinsights --location $LOCATION --properties '{"ApplicationId":"$ROOT_NAME","Application_Type":"other","Flow_Type":"Redfield"}' \
+--name ${FUNCTIONAPP_NAME} --location $LOCATION --properties '{"ApplicationId":"$ROOT_NAME","Application_Type":"other","Flow_Type":"Redfield"}' \
 -o json \
-1> ./logs/080-appinsights.log
+1> $PP/logs/080-appinsights.log
 
 echo 'getting appinsights instrumentation key'
-APPINSIGHTS_INSTRUMENTATIONKEY=`az resource show -g $RESOURCE_GROUP -n ${FUNCTIONAPP_NAME}appinsights --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv`
+APPINSIGHTS_INSTRUMENTATIONKEY=`az resource show -g $RESOURCE_GROUP -n ${FUNCTIONAPP_NAME} --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv`
 
 echo 'creating function app'
 az functionapp create -g $RESOURCE_GROUP -n $FUNCTIONAPP_NAME \
@@ -109,7 +111,7 @@ az functionapp create -g $RESOURCE_GROUP -n $FUNCTIONAPP_NAME \
 --app-insights-key $APPINSIGHTS_INSTRUMENTATIONKEY \
 --storage-account $STORAGE_ACCOUNT \
 -o json \
-1> ./logs/090-functionapp.log
+1> $PP/logs/090-functionapp.log
 
 echo 'adding app settings for connection strings'
 
@@ -118,21 +120,21 @@ az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 --resource-group $RESOURCE_GROUP \
 --settings DatabaseName=$COSMOSDB_DATABASE_NAME \
 -o json \
-1>> ./logs/090-functionapp.log
+1>> $PP/logs/090-functionapp.log
 
 echo ". RawCollectionName"
 az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 --resource-group $RESOURCE_GROUP \
 --settings RawCollectionName=$COSMOSDB_COLLECTION_NAME_RAW \
 -o json \
-1>> ./logs/090-functionapp.log
+1>> $PP/logs/090-functionapp.log
 
 echo ". ViewCollectionName"
 az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 --resource-group $RESOURCE_GROUP \
 --settings ViewCollectionName=$COSMOSDB_COLLECTION_NAME_MV \
 -o json \
-1>> ./logs/090-functionapp.log
+1>> $PP/logs/090-functionapp.log
 
 echo ". ConnectionString"
 COSMOSDB_CONNECTIONSTRING=`az cosmosdb list-connection-strings -g mvsample --name mvsample --query 'connectionStrings[0].connectionString' -o tsv`
@@ -140,10 +142,10 @@ az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 --resource-group $RESOURCE_GROUP \
 --settings ConnectionString=$COSMOSDB_CONNECTIONSTRING \
 -o json \
-1>> ./logs/090-functionapp.log
+1>> $PP/logs/090-functionapp.log
 
 echo 'building function app'
-FUNCTION_SRC_PATH=../materialized-view-processor
+FUNCTION_SRC_PATH=$PP/../materialized-view-processor
 CURDIR=$PWD
 cd $FUNCTION_SRC_PATH
 dotnet publish . --configuration Release 
@@ -152,16 +154,32 @@ echo 'creating zip file'
 ZIPFOLDER="./bin/Release/netcoreapp2.1/publish/"
 rm -f publish.zip
 cd $ZIPFOLDER
-zip -r $CURDIR/publish.zip . 
+zip -r $PP/publish.zip . 
 cd $CURDIR
 
 echo 'deploying function'
 az functionapp deployment source config-zip \
 --resource-group $RESOURCE_GROUP \
 --name $FUNCTIONAPP_NAME  --src publish.zip \
-1> ./logs/100-functionapp-deploy.log
+1> $PP/logs/100-functionapp-deploy.log
 
 echo 'removing local zip file'
-rm -f publish.zip
+rm -f $PP/publish.zip
+
+echo 'creating App.Config'
+
+COSMOSDB_URI=`az cosmosdb list -g $RESOURCE_GROUP --query '[0].documentEndpoint' -o tsv`
+COSMOSDB_KEY=`az cosmosdb list-keys -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --query 'primaryMasterKey' -o tsv`
+APP=$PP/../sensor-data-producer
+
+sed "s|{URI}|${COSMOSDB_URI}|g" $APP/App.config.template > $APP/App.config
+
+sed -i.bak "s|{KEY}|${COSMOSDB_KEY}|g" $APP/App.config
+
+sed -i.bak "s|{DB}|${COSMOSDB_DATABASE_NAME}|g" $APP/App.config
+
+sed -i.bak "s|{RAW}|${COSMOSDB_COLLECTION_NAME_RAW}|g" $APP/App.config
+
+rm -f $APP/App.config.bak
 
 echo 'deployment done'
