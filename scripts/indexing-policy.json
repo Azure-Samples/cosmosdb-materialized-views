@@ -1,0 +1,9 @@
+{
+    "indexingMode": "consistent",
+    "automatic": true,
+    "excludedPaths": [
+        {
+            "path": "/*"
+        }
+    ]
+}

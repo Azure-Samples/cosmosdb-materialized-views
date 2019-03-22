@@ -30,7 +30,7 @@ if [ $SERVER_EXISTS == "false" ]; then
     1> ./logs/030-cosmosdb-create.log
 fi
 
-echo 'creating cosmosdb database'
+echo 'creating cosmosdb raw database'
 DB_EXISTS=`az cosmosdb database exists -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --db-name $COSMOSDB_DATABASE_NAME -o tsv`
 if [ $DB_EXISTS == "false" ]; then
     az cosmosdb database create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME \
@@ -45,17 +45,19 @@ if [ $COLLECTION_EXISTS == "false" ]; then
     az cosmosdb collection create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME -d $COSMOSDB_DATABASE_NAME \
     --collection-name $COSMOSDB_COLLECTION_NAME_RAW \
     --partition-key-path "/deviceId" \
+    --indexing-policy @index-policy.json \
     --throughput $COSMOSDB_RU \
     -o json \
     1> ./logs/050-cosmosdb-collection-create-raw.log
 fi
 
-echo 'creating cosmosdb collection'
+echo 'creating cosmosdb view collection'
 COLLECTION_EXISTS=`az cosmosdb collection exists -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --db-name $COSMOSDB_DATABASE_NAME --collection-name $COSMOSDB_COLLECTION_NAME_MV -o tsv`
 if [ $COLLECTION_EXISTS == "false" ]; then
     az cosmosdb collection create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME -d $COSMOSDB_DATABASE_NAME \
     --collection-name $COSMOSDB_COLLECTION_NAME_MV \
     --partition-key-path "/deviceId" \
+    --indexing-policy @index-policy.json \
     --throughput $COSMOSDB_RU \
     -o json \
    1> ./logs/060-cosmosdb-collection-create-mv.log
@@ -72,9 +74,8 @@ APPINSIGHTS_INSTRUMENTATIONKEY=`az resource show -g $RESOURCE_GROUP -n ${FUNCTIO
 
 echo 'creating function app'
 az functionapp create -g $RESOURCE_GROUP -n $FUNCTIONAPP_NAME \
---plan $PLAN_NAME \
---consumption-plan-location $LOCATION
---app-insights-key $APPINSIGHTS_INSTRUMENTATIONKEY
+--consumption-plan-location $LOCATION \
+--app-insights-key $APPINSIGHTS_INSTRUMENTATIONKEY \
 --storage-account $STORAGE_ACCOUNT \
 -o json \
 1> ./logs/090-functionapp.log
@@ -110,15 +111,8 @@ az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 -o json \
 1>> ./logs/090-functionapp.log
 
-echo ". APPINSIGHTS_INSTRUMENTATIONKEY"
-az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
---resource-group $RESOURCE_GROUP \
---settings APPINSIGHTS_INSTRUMENTATIONKEY=$APPINSIGHTS_INSTRUMENTATIONKEY \
--o json \
-1>> ./logs/090-functionapp.log
-
 echo 'building function app'
-FUNCTION_SRC_PATH=../materialiazed-view-processor
+FUNCTION_SRC_PATH=../materialized-view-processor
 CURDIR=$PWD
 cd $FUNCTION_SRC_PATH
 dotnet publish . --configuration Release 
