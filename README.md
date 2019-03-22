@@ -1,7 +1,5 @@
 # Near-Real Time Updated Materialized View With Cosmos DB and Azure Functions
 
-WIP: descrive the use case scenario and the solution
-
 Sample data:
 
     {
@@ -122,3 +120,6 @@ Once the producer is stared you can see the result by using Azure Portal or Azur
 You can also take a look at the Application Insight Live Metric Streams to see in real time function processing incoming data from the Change Feed
 
 
+## Reference
+
+- [Azure Cosmos DB + Functions Cookbook — Connection modes](https://medium.com/microsoftazure/azure-cosmos-db-functions-cookbook-connection-modes-ecf405a750d9)
