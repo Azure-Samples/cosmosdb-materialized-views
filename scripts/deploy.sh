@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo 'starting deployment'
+
 mkdir logs &>/dev/null
 
 set -euo pipefail
@@ -136,3 +138,5 @@ az functionapp deployment source config-zip \
 
 echo 'removing local zip file'
 rm -f publish.zip
+
+echo 'deployment done'
