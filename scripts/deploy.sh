@@ -160,7 +160,8 @@ cd $CURDIR
 echo 'deploying function'
 az functionapp deployment source config-zip \
 --resource-group $RESOURCE_GROUP \
---name $FUNCTIONAPP_NAME  --src publish.zip \
+--name $FUNCTIONAPP_NAME \
+--src $PP/publish.zip \
 1> $PP/logs/100-functionapp-deploy.log
 
 echo 'removing local zip file'
