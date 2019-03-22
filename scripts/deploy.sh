@@ -4,7 +4,7 @@ echo 'starting deployment'
 
 PP=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-mkdir logs &>/dev/null
+mkdir $PP/logs &>/dev/null
 
 set -euo pipefail
 
