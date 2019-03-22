@@ -33,7 +33,7 @@ if [ -z HAS_DOTNET ]; then
     exit 1
 fi
 
-export ROOT_NAME='mvsample'
+export ROOT_NAME='mvsample2'
 export LOCATION='eastus'
 
 export RESOURCE_GROUP=$ROOT_NAME
@@ -98,12 +98,12 @@ fi
 
 echo 'creating appinsights'
 az resource create --resource-group $RESOURCE_GROUP --resource-type "Microsoft.Insights/components" \
---name ${FUNCTIONAPP_NAME} --location $LOCATION --properties '{"ApplicationId":"$ROOT_NAME","Application_Type":"other","Flow_Type":"Redfield"}' \
+--name $ROOT_NAME --location $LOCATION --properties '{"ApplicationId":"$ROOT_NAME","Application_Type":"other","Flow_Type":"Redfield"}' \
 -o json \
 1> $PP/logs/080-appinsights.log
 
 echo 'getting appinsights instrumentation key'
-APPINSIGHTS_INSTRUMENTATIONKEY=`az resource show -g $RESOURCE_GROUP -n ${FUNCTIONAPP_NAME} --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv`
+APPINSIGHTS_INSTRUMENTATIONKEY=`az resource show -g $RESOURCE_GROUP -n $ROOT_NAME --resource-type "Microsoft.Insights/components" --query properties.InstrumentationKey -o tsv`
 
 echo 'creating function app'
 az functionapp create -g $RESOURCE_GROUP -n $FUNCTIONAPP_NAME \
@@ -137,7 +137,7 @@ az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 1>> $PP/logs/090-functionapp.log
 
 echo ". ConnectionString"
-COSMOSDB_CONNECTIONSTRING=`az cosmosdb list-connection-strings -g mvsample --name mvsample --query 'connectionStrings[0].connectionString' -o tsv`
+COSMOSDB_CONNECTIONSTRING=`az cosmosdb list-connection-strings -g $RESOURCE_GROUP --name $COSMOSDB_SERVER_NAME --query 'connectionStrings[0].connectionString' -o tsv`
 az functionapp config appsettings set --name $FUNCTIONAPP_NAME \
 --resource-group $RESOURCE_GROUP \
 --settings ConnectionString=$COSMOSDB_CONNECTIONSTRING \

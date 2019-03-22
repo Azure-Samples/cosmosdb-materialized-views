@@ -24,6 +24,7 @@ namespace Azure.Samples
                 collectionName: "%RawCollectionName%", 
                 ConnectionStringSetting = "ConnectionString", 
                 LeaseCollectionName = "leases", 
+                CreateLeaseCollectionIfNotExists = true,
                 FeedPollDelay=1000
             )]IReadOnlyList<Document> input,
             [CosmosDB(
