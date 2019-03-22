@@ -36,7 +36,7 @@ if [ $SERVER_EXISTS == "false" ]; then
     1> ./logs/030-cosmosdb-create.log
 fi
 
-echo 'creating cosmosdb raw database'
+echo 'creating cosmosdb database'
 DB_EXISTS=`az cosmosdb database exists -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --db-name $COSMOSDB_DATABASE_NAME -o tsv`
 if [ $DB_EXISTS == "false" ]; then
     az cosmosdb database create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME \
@@ -45,13 +45,13 @@ if [ $DB_EXISTS == "false" ]; then
         1> ./logs/040-cosmosdb-database-create.log
 fi
 
-echo 'creating cosmosdb collection'
+echo 'creating cosmosdb raw collection'
 COLLECTION_EXISTS=`az cosmosdb collection exists -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --db-name $COSMOSDB_DATABASE_NAME --collection-name $COSMOSDB_COLLECTION_NAME_RAW -o tsv`
 if [ $COLLECTION_EXISTS == "false" ]; then
     az cosmosdb collection create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME -d $COSMOSDB_DATABASE_NAME \
     --collection-name $COSMOSDB_COLLECTION_NAME_RAW \
     --partition-key-path "/deviceId" \
-    --indexing-policy @index-policy.json \
+    --indexing-policy '{ "indexingMode": "none", "automatic": false }' \
     --throughput $COSMOSDB_RU \
     -o json \
     1> ./logs/050-cosmosdb-collection-create-raw.log
@@ -63,7 +63,7 @@ if [ $COLLECTION_EXISTS == "false" ]; then
     az cosmosdb collection create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME -d $COSMOSDB_DATABASE_NAME \
     --collection-name $COSMOSDB_COLLECTION_NAME_MV \
     --partition-key-path "/deviceId" \
-    --indexing-policy @index-policy.json \
+    --indexing-policy '{ "indexingMode": "none", "automatic": false }' \
     --throughput $COSMOSDB_RU \
     -o json \
    1> ./logs/060-cosmosdb-collection-create-mv.log
