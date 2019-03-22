@@ -1,5 +1,30 @@
 #!/bin/bash
 
+
+echo "checking prerequisistes"
+
+HAS_AZ=`command -v az`
+if [ -z HAS_AZ ]; then
+    echo "AZ CLI not found"
+    echo "please install it as described here:"
+    echo "https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-apt?view=azure-cli-latest"
+    exit 1
+fi
+
+HAS_ZIP=`command -v zip`
+if [ -z HAS_ZIP ]; then
+    echo "zip not found"
+    echo "please install it as it is needed by the script"
+    exit 1
+fi
+
+HAS_DOTNET=`command -v dotnet`
+if [ -z HAS_DOTNET ]; then
+    echo "dotnet not found"
+    echo "please install it as it is needed by the script"
+    exit 1
+fi
+
 echo 'starting deployment'
 
 mkdir logs &>/dev/null
