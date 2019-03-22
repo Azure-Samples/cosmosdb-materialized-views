@@ -42,6 +42,10 @@ Values are updated in near-real time by using the Change Feed feature provided b
 
 - https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#trigger---c-attributes 
 
+## Implementation Notes
+
+Data is partitioned by `deviceId` in both the `raw` and `view` collection to make sure order is preserved within data sent by a single device. Collections do not use indexing as only point-lookups are done and since in this sample Cosmos DB is used a key-value store, switching off indexing allows to spare RUs.
+
 ## Prerequisites
 
 If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/free/?ref=microsoft.com&utm_source=microsoft.com&utm_medium=docs&utm_campaign=visualstudio) before you begin.
@@ -116,3 +120,5 @@ will generate data with Device Ids starting from 015 up to 025.
 Once the producer is stared you can see the result by using Azure Portal or Azure Storage Explorer to look for document create int the `view` collection of the created Cosmos DB database.
 
 You can also take a look at the Application Insight Live Metric Streams to see in real time function processing incoming data from the Change Feed
+
+
