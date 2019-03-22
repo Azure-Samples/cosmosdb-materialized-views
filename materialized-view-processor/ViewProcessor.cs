@@ -10,50 +10,11 @@ using Microsoft.Azure.WebJobs.Host;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Documents.Client;
 using System.Net;
+using Azure.Samples.Entities;
 
-namespace Azure.Samples
-{
-    public class Device
-    {        
-        public string DeviceId;
-        public double Value;
-        public string TimeStamp;
-
-        public static Device FromDocument(Document document)
-        {
-            var result = new Device()
-            {
-                DeviceId = document.GetPropertyValue<string>("deviceId"),
-                Value = document.GetPropertyValue<double>("value"),
-                TimeStamp = document.GetPropertyValue<DateTime>("timestamp").ToString("yyyy-MM-ddTHH:mm:ssK")
-            };
-
-            return result;
-        }    
-    }
-
-    public class DeviceMaterializedView
-    {
-        [JsonProperty("id")]
-        public string Name;
-
-        [JsonProperty("aggregationSum")]
-        public double AggregationSum;
-
-        [JsonProperty("lastValue")]
-        public double LastValue;
-
-        [JsonProperty("type")]
-        public string Type;
-
-        [JsonProperty("deviceId")]
-        public string DeviceId;
-
-        [JsonProperty("lastUpdate")]
-        public string TimeStamp;
-    }
-
-    public class Processor
+namespace Azure.Samples.Processor
+{   
+    public class ViewProcessor
     {
         private DocumentClient _client;
         private Uri _collectionUri;
@@ -63,7 +24,7 @@ namespace Azure.Samples
         private string _collectionName = Environment.GetEnvironmentVariable("ViewCollectionName");
 
 
-        public Processor(DocumentClient client, ILogger log)
+        public ViewProcessor(DocumentClient client, ILogger log)
         {
             _log = log;
             _client = client;
@@ -179,47 +140,6 @@ namespace Azure.Samples
             }
 
             throw new ApplicationException("Could not insert document after being throttled 3 times");
-        }
-    }
-
-
-    public static class MaterializedViewProcessor
-    {
-
-        [FunctionName("MaterializedViewProcessor")]
-        public static async Task Run(
-            [CosmosDBTrigger(
-                databaseName: "%DatabaseName%", 
-                collectionName: "%RawCollectionName%", 
-                ConnectionStringSetting = "ConnectionString", 
-                LeaseCollectionName = "leases", 
-                CreateLeaseCollectionIfNotExists = true
-            )]IReadOnlyList<Document> input,
-            [CosmosDB(
-                databaseName: "%DatabaseName%",
-                collectionName: "%ViewCollectionName%",
-                ConnectionStringSetting = "ConnectionString"
-            )]DocumentClient client,
-            ILogger log
-        )        
-        {
-            if (input != null && input.Count > 0)
-            {
-                foreach(var d in input)
-                {
-                    var device = Device.FromDocument(d);
-
-                    Processor p = new Processor(client, log);
-
-                    var tasks = new List<Task>();
-
-                    tasks.Add(p.UpdateDeviceMaterializedView(device));
-                    tasks.Add(p.UpdateGlobalMaterializedView(device));
-
-                    await Task.WhenAll(tasks);
-
-                }    
-            }
         }
     }
 }
