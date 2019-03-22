@@ -42,6 +42,42 @@ Values are updated in near-real time by using the Change Feed feature provided b
 
 - https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#trigger---c-attributes 
 
+## Prerequisites
+
+If you don't have an Azure subscription, create a [free account](https://azure.microsoft.com/free/?ref=microsoft.com&utm_source=microsoft.com&utm_medium=docs&utm_campaign=visualstudio) before you begin.
+
+In addition:
+
+* [Visual Studio 2017](https://visualstudio.microsoft.com/downloads/) or  [Visual Studio Code](https://code.visualstudio.com/)
+* [.NET Core SDK](https://dotnet.microsoft.com/download)
+* [Git](https://www.git-scm.com/downloads)
+* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+* [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/)
+
+## Getting Started
+
+Make sure you have WSL (Windows System For Linux) installed and have AZ CLI version > 2.0.50. Before running any script also make sure you are authenticated on AZ CLI using
+
+```bash
+az login
+```
+
+and have selected the Azure Subscription you want to use for the tests:
+
+```bash
+az account list --output table
+az account set --subscription "<YOUR SUBSCRIPTION NAME>"
+```
+
+## Clone the sample project
+
+Clone the repository and open the code-samples directory from your command line tool.
+
+```bash
+git clone https://github.com/Azure-Samples/cosmosdb-materialized-views
+cd cosmosdb-materialized-views
+```
+
 ## Create Azure Resources
 
 To create and configure the Azure Resources needed for the project, you just have to run the `deploy.sh` script in the `script` folder.
