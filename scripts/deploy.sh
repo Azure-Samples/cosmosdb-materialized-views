@@ -95,6 +95,16 @@ if [ $COLLECTION_EXISTS == "false" ]; then
    1> $PP/logs/060-cosmosdb-collection-create-mv.log
 fi
 
+echo 'creating cosmosdb leases collection'
+COLLECTION_EXISTS=`az cosmosdb collection exists -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --db-name $COSMOSDB_DATABASE_NAME --collection-name leases -o tsv`
+if [ $COLLECTION_EXISTS == "false" ]; then
+    az cosmosdb collection create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME -d $COSMOSDB_DATABASE_NAME \
+    --collection-name leases \    
+    --throughput 400 \
+    -o json \
+   1> $PP/logs/060-cosmosdb-collection-create-mv.log
+fi
+
 echo 'creating appinsights'
 az resource create --resource-group $RESOURCE_GROUP --resource-type "Microsoft.Insights/components" \
 --name $ROOT_NAME --location $LOCATION --properties '{"ApplicationId":"$ROOT_NAME","Application_Type":"other","Flow_Type":"Redfield"}' \
