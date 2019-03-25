@@ -13,7 +13,7 @@ export COSMOSDB_RU=1000
 export PLAN_NAME="${ROOT_NAME}plan"
 export FUNCTIONAPP_NAME="MaterializedViewProcessor"
 
-echo 'starting deployment'
+echo "starting deployment: $ROOT_NAME"
 
 PP=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
