@@ -58,6 +58,7 @@ namespace Azure.Samples.Processor
                 viewAll["id"] = "global";
                 viewAll["deviceId"] = "global";
                 viewAll["type"] = "global";
+                viewAll["lastUpdate"] = device.TimeStamp;
                 viewAll["deviceSummary"] = new JObject();
             }
 
