@@ -130,14 +130,14 @@ namespace SensorDataProducer
 
         public async Task Run(int sensorId)
         {
-            Random rnd = new Random();
-
             var database = await _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosDB.Database });
 
             var collection = await _client.CreateDocumentCollectionIfNotExistsAsync(
                 UriFactory.CreateDatabaseUri(_cosmosDB.Database), 
                 new DocumentCollection { Id = _cosmosDB.Collection }
                 );
+
+            var collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosDB.Database, _cosmosDB.Collection);
 
             Random random = new Random();
 
@@ -152,26 +152,38 @@ namespace SensorDataProducer
 
                 Console.WriteLine(sensorData);
 
-                try
+                bool documentCreated = false;
+                int tryCount = 0;
+
+                while(!documentCreated && tryCount<3)
                 {
-                    await _client.CreateDocumentAsync(
-                        UriFactory.CreateDocumentCollectionUri(_cosmosDB.Database, _cosmosDB.Collection), 
-                        sensorData);
-                }
-                catch (DocumentClientException de)
-                {
-                    if (de.StatusCode == HttpStatusCode.TooManyRequests)
+                    try
                     {
-                        Console.WriteLine($"{sensorData.Id}: Waiting for ${de.RetryAfter} msec...");
-                        await Task.Delay(de.RetryAfter);
+                        await _client.CreateDocumentAsync(collectionUri, sensorData);
+                        documentCreated = true;
                     }
-                    else
+                    catch (DocumentClientException de)
                     {
-                        throw;
+                        if (de.StatusCode == HttpStatusCode.TooManyRequests)
+                        {
+                            Console.WriteLine($"{sensorData.Id}: Waiting for ${de.RetryAfter} msec...");
+                            documentCreated = false;
+                            await Task.Delay(de.RetryAfter);
+                            tryCount =+ 1;
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
                 }
 
-                await Task.Delay(rnd.Next(500) + 750);
+                if (documentCreated == false)
+                {
+                    throw new ApplicationException("Cannot create document after trying 3 times");
+                }
+
+                await Task.Delay(random.Next(500) + 750);
             }            
         }
     }
