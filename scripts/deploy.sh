@@ -1,5 +1,18 @@
 #!/bin/bash
 
+export ROOT_NAME='mvsample'
+export LOCATION='eastus'
+
+export RESOURCE_GROUP=$ROOT_NAME
+export STORAGE_ACCOUNT="${ROOT_NAME}storage"
+export COSMOSDB_SERVER_NAME=$ROOT_NAME
+export COSMOSDB_DATABASE_NAME=$ROOT_NAME
+export COSMOSDB_COLLECTION_NAME_RAW='raw'
+export COSMOSDB_COLLECTION_NAME_MV='view'
+export COSMOSDB_RU=1000
+export PLAN_NAME="${ROOT_NAME}plan"
+export FUNCTIONAPP_NAME="MaterializedViewProcessor"
+
 echo 'starting deployment'
 
 PP=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
@@ -32,20 +45,6 @@ if [ -z HAS_DOTNET ]; then
     echo "https://dotnet.microsoft.com/download"
     exit 1
 fi
-
-export ROOT_NAME='mvsample2'
-export LOCATION='eastus'
-
-export RESOURCE_GROUP=$ROOT_NAME
-export STORAGE_ACCOUNT="${ROOT_NAME}storage"
-export COSMOSDB_SERVER_NAME=$ROOT_NAME
-export COSMOSDB_DATABASE_NAME=$ROOT_NAME
-export COSMOSDB_COLLECTION_NAME_RAW='raw'
-export COSMOSDB_COLLECTION_NAME_MV='view'
-export COSMOSDB_RU=1000
-export PLAN_NAME="${ROOT_NAME}plan"
-export FUNCTIONAPP_NAME="MaterializedViewProcessor"
-
 
 echo 'creating resource group'
 az group create -n $RESOURCE_GROUP -l $LOCATION -o json \
