@@ -99,10 +99,10 @@ echo 'creating cosmosdb leases collection'
 COLLECTION_EXISTS=`az cosmosdb collection exists -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME --db-name $COSMOSDB_DATABASE_NAME --collection-name leases -o tsv`
 if [ $COLLECTION_EXISTS == "false" ]; then
     az cosmosdb collection create -g $RESOURCE_GROUP -n $COSMOSDB_SERVER_NAME -d $COSMOSDB_DATABASE_NAME \
-    --collection-name leases \    
+    --collection-name leases \
     --throughput 400 \
     -o json \
-   1> $PP/logs/060-cosmosdb-collection-create-mv.log
+   1> $PP/logs/070-cosmosdb-collection-create-leases.log
 fi
 
 echo 'creating appinsights'
