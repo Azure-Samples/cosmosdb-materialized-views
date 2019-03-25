@@ -1,10 +1,18 @@
 # Near-Real Time Updated Materialized View With Cosmos DB and Azure Functions
 
-Sample data:
+The sample data simulates an IoT enviroment, even though the Materialize View pattern can be applied to any scenario and industry. 
+
+As described here (TODO: Link to PnP doc) typical use cases are:
+
+near-real time operational analytics
+neal-real time aggregated status 
+(TODO: complete list)
+
+The simulated IoT device send this sample data:
 
     {
         "deviceId": "036",
-        "value": 164.91290226807487,
+        "value": 164.91290226807487, 
         "timestamp": "2019-03-22T19:46:20.8633068Z"
     }
 
