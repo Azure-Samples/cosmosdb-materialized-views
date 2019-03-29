@@ -36,12 +36,13 @@ namespace Azure.Samples
         {
             if (input != null && input.Count > 0)
             {
+                var p = new ViewProcessor(client, log);
+                
                 log.LogInformation($"Processing {input.Count} events");
+                
                 foreach(var d in input)
                 {
                     var device = Device.FromDocument(d);
-
-                    var p = new ViewProcessor(client, log);
 
                     var tasks = new List<Task>();
 
