@@ -58,11 +58,11 @@ If you don't have an Azure subscription, create a [free account](https://azure.m
 
 In addition:
 
-* [Visual Studio 2017](https://visualstudio.microsoft.com/downloads/) or  [Visual Studio Code](https://code.visualstudio.com/)
-* [.NET Core SDK](https://dotnet.microsoft.com/download)
-* [Git](https://www.git-scm.com/downloads)
-* [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-* [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/)
+- [Visual Studio 2017](https://visualstudio.microsoft.com/downloads/) or [Visual Studio Code](https://code.visualstudio.com/)
+- [.NET Core SDK](https://dotnet.microsoft.com/download)
+- [Git](https://www.git-scm.com/downloads)
+- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+- [Azure Storage Explorer](https://azure.microsoft.com/en-us/features/storage-explorer/)
 
 ## Getting Started
 
@@ -126,7 +126,6 @@ will generate data with Device Ids starting from 015 up to 025.
 Once the producer is stared you can see the result by using Azure Portal or Azure Storage Explorer to look for document create int the `view` collection of the created Cosmos DB database.
 
 You can also take a look at the Application Insight Live Metric Streams to see in real time function processing incoming data from the Change Feed
-
 
 ## Reference
 
