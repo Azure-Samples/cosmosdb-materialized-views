@@ -1,22 +1,37 @@
 # Near-Real Time Updated Materialized View With Cosmos DB and Azure Functions
 
-The sample data simulates an IoT enviroment, even though the Materialize View pattern can be applied to any scenario and industry. 
+This sample shows how materialized view can be kept updated in near-real time using a completely serverless approach with
 
-As described here (TODO: Link to PnP doc) typical use cases are:
+- Azure Function
+- Cosmos DB
+- Cosmos DB Change Feed
 
-near-real time operational analytics
-neal-real time aggregated status 
-(TODO: complete list)
+The high-level architecture is the following one:
 
-The simulated IoT device send this sample data:
+![High Level Materialized View Architecture](./images/materialized-view-architecture.png)
+
+More info on the subject can be found here:
+
+TODO: link to medium article
+
+The sample simulates one or more IoT Devices whose sent data needs to be received and processed in near-real time. Processed means:
+
+- Provide, for each device, the sum of the sent `value` data and also the last sent value
+- Provide one view with all devices and the last data sent by each one
+
+## Sample data
+
+The simulated IoT devices will send this sample data:
 
     {
         "deviceId": "036",
-        "value": 164.91290226807487, 
+        "value": 164.91290226807487,
         "timestamp": "2019-03-22T19:46:20.8633068Z"
     }
 
-Sample Materialized Views. This one is for each device and contain aggregated data for the device specified in `id`:
+## Processed data
+
+The resulting processed data for each device will look like the following document; 
 
     {
         "id": "030",
@@ -27,7 +42,9 @@ Sample Materialized Views. This one is for each device and contain aggregated da
         "lastUpdate": "2019-03-22T19:50:17Z"
     }
 
-There is also a `global` materialized view, where the last value *for each device* is stored:
+The document contain aggregated data for the device specified in `id`, as long as the aggregated value in `aggregationSum` and the last sent value in the `lastValue` field.
+
+The `global` materialized view is where the last value *for each device* is stored:
 
     {
         "id": "global",
@@ -42,11 +59,10 @@ There is also a `global` materialized view, where the last value *for each devic
         },
     }
 
-Values are updated in near-real time by using the Change Feed feature provided by Cosmos DB. The sample is using the default feed polling time of 5 seconds, but it can easily changed to a much lower value if you need more "real time" updates.
+Values are updated in near-real time by using the Change Feed feature provided by Cosmos DB. The sample is using processing data coming from the Change Feed every second, but it can easily changed to a much lower value if you need more "real time" updates.
 
-- https://docs.microsoft.com/en-us/azure/cosmos-db/change-feed-functions 
-
-- https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#trigger---c-attributes 
+- [Trigger Azure Functions from Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/change-feed-functions)
+- [Azure Function Cosmos DB Triggers](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#trigger---c-attributes) 
 
 ## Implementation Notes
 
@@ -102,7 +118,7 @@ The following resources will be created:
 - Azure Storage
 - Azure Function (using Consumption Plan)
 - Application Insight
-- Cosmos DB with 2 Collections (1000 RU/s each)
+- Cosmos DB with 3 Collections (raw and view with 1000 RU each, leases with 400 RU)
 
 ## Run the Producer application
 
@@ -127,6 +143,6 @@ Once the producer is stared you can see the result by using Azure Portal or Azur
 
 You can also take a look at the Application Insight Live Metric Streams to see in real time function processing incoming data from the Change Feed
 
-## Reference
+## Additional Reference
 
 - [Azure Cosmos DB + Functions Cookbook — Connection modes](https://medium.com/microsoftazure/azure-cosmos-db-functions-cookbook-connection-modes-ecf405a750d9)
