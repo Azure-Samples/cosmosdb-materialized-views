@@ -120,6 +120,15 @@ The following resources will be created:
 - Application Insight
 - Cosmos DB with 3 Collections (raw and view with 1000 RU each, leases with 400 RU)
 
+By default all deployed resources will have the `mvsample` prefix and the location will be `eastus`.
+
+You can change the following settings
+
+    export ROOT_NAME='mvsample'
+    export LOCATION='eastus'
+
+in `./script/deploy` to make sure they work for you.
+
 ## Run the Producer application
 
 The producer application will generate sample sensor data as described before. The application takes the device ids to generate as parameter:
@@ -139,7 +148,7 @@ will generate data with Device Ids starting from 015 up to 025.
 
 ## Check results
 
-Once the producer is stared you can see the result by using Azure Portal or Azure Storage Explorer to look for document create int the `view` collection of the created Cosmos DB database.
+Once the producer is started you can see the result by using Azure Portal or Azure Storage Explorer to look for document create int the `view` collection of the created Cosmos DB database.
 
 You can also take a look at the Application Insight Live Metric Streams to see in real time function processing incoming data from the Change Feed
 
