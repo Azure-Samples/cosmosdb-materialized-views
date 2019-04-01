@@ -10,7 +10,12 @@ The high-level architecture is the following one:
 
 ![High Level Materialized View Architecture](./images/materialized-view-architecture.png)
 
-More info on the subject can be found here:
+Device simulator writes JSON data to Cosmos DB into `raw` collection. Such data is exposed by Cosmos DB Change Feed and consumed by an Azure Function (via Change Feed Processor), that get the JSON document and uses it to create or updated the related materialized views, stored in the `view` collection.
+
+[Change feed in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/change-feed)
+[Change feed processor in Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/change-feed-processor)
+
+A more detailed discussion on the architecture and solution can be found here:
 
 TODO: link to medium article
 
@@ -31,7 +36,7 @@ The simulated IoT devices will send this sample data:
 
 ## Processed data
 
-The resulting processed data for each device will look like the following document; 
+The resulting processed data for each device will look like the following document:
 
     {
         "id": "030",
