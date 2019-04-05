@@ -35,7 +35,7 @@ namespace Azure.Samples.Processor
         {
             _log.LogInformation("Updating global materialized view");
 
-            JObject viewAll = null;
+            Document viewAll = null;
             var optionsAll = new RequestOptions() { PartitionKey = new PartitionKey("global") };
 
             try
@@ -44,7 +44,7 @@ namespace Azure.Samples.Processor
 
                 _log.LogInformation($"Materialized view: {uriAll.ToString()}");
 
-                viewAll = await _client.ReadDocumentAsync<JObject>(uriAll, optionsAll);
+                viewAll = await _client.ReadDocumentAsync(uriAll, optionsAll);                
             }
             catch (DocumentClientException ex)
             {
@@ -54,16 +54,23 @@ namespace Azure.Samples.Processor
 
             if (viewAll == null)
             {
-                viewAll = new JObject();
-                viewAll["id"] = "global";
-                viewAll["deviceId"] = "global";
-                viewAll["type"] = "global";
-                viewAll["lastUpdate"] = device.TimeStamp;
-                viewAll["deviceSummary"] = new JObject();
+                viewAll = new Document();
+                viewAll.SetPropertyValue("id", "global");
+                viewAll.SetPropertyValue("deviceId", "global");
+                viewAll.SetPropertyValue("type", "global");
+                viewAll.SetPropertyValue("id", "global");
+                viewAll.SetPropertyValue("lastUpdate", device.TimeStamp);
+                viewAll.SetPropertyValue("deviceSummary", new JObject());
             }
 
-            viewAll["deviceSummary"][device.DeviceId] = device.Value;
+            var ds = viewAll.GetPropertyValue<JObject>("deviceSummary");
+            ds[device.DeviceId] = device.Value;
 
+            AccessCondition acAll = new AccessCondition() {
+                Type = AccessConditionType.IfMatch,
+                Condition = viewAll.ETag                
+            };
+            
             await UpsertDocument(viewAll, optionsAll);
         }
 
