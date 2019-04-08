@@ -38,40 +38,66 @@ namespace Azure.Samples.Processor
             Document viewAll = null;
             var optionsAll = new RequestOptions() { PartitionKey = new PartitionKey("global") };
 
-            try
+            int attempts = 0;
+
+            while (attempts < 10)
             {
-                var uriAll = UriFactory.CreateDocumentUri(_databaseName, _collectionName, "global");
+                try
+                {
+                    var uriAll = UriFactory.CreateDocumentUri(_databaseName, _collectionName, "global");
 
-                _log.LogInformation($"Materialized view: {uriAll.ToString()}");
+                    _log.LogInformation($"Materialized view: {uriAll.ToString()}");
 
-                viewAll = await _client.ReadDocumentAsync(uriAll, optionsAll);                
+                    viewAll = await _client.ReadDocumentAsync(uriAll, optionsAll);                
+                }
+                catch (DocumentClientException ex)
+                {
+                    if (ex.StatusCode != HttpStatusCode.NotFound)
+                        throw ex;
+                }
+
+                if (viewAll == null)
+                {
+                    viewAll = new Document();
+                    viewAll.SetPropertyValue("id", "global");
+                    viewAll.SetPropertyValue("deviceId", "global");
+                    viewAll.SetPropertyValue("type", "global");
+                    viewAll.SetPropertyValue("id", "global");
+                    viewAll.SetPropertyValue("deviceSummary", new JObject());
+                }
+
+                var ds = viewAll.GetPropertyValue<JObject>("deviceSummary");
+                ds[device.DeviceId] = device.Value;
+                viewAll.SetPropertyValue("deviceSummary", ds);            
+                viewAll.SetPropertyValue("deviceLastUpdate", device.TimeStamp);
+                viewAll.SetPropertyValue("lastUpdate", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssK"));
+
+                AccessCondition acAll = new AccessCondition() {
+                    Type = AccessConditionType.IfMatch,
+                    Condition = viewAll.ETag                
+                };
+                optionsAll.AccessCondition = acAll;
+                
+                try 
+                {
+                    await UpsertDocument(viewAll, optionsAll);
+                    return;
+                }
+                catch (DocumentClientException de) 
+                {
+                    if (de.StatusCode == HttpStatusCode.PreconditionFailed)
+                    {
+                        attempts += 1;
+                        _log.LogWarning($"Optimistic concurrency pre-condition check failed. Trying again ({attempts}/10)");                        
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }              
             }
-            catch (DocumentClientException ex)
-            {
-                if (ex.StatusCode != HttpStatusCode.NotFound)
-                    throw ex;
-            }
 
-            if (viewAll == null)
-            {
-                viewAll = new Document();
-                viewAll.SetPropertyValue("id", "global");
-                viewAll.SetPropertyValue("deviceId", "global");
-                viewAll.SetPropertyValue("type", "global");
-                viewAll.SetPropertyValue("id", "global");
-                viewAll.SetPropertyValue("lastUpdate", device.TimeStamp);
-                viewAll.SetPropertyValue("deviceSummary", new JObject());
-            }
-
-            var ds = viewAll.GetPropertyValue<JObject>("deviceSummary");
-            ds[device.DeviceId] = device.Value;
-
-            AccessCondition acAll = new AccessCondition() {
-                Type = AccessConditionType.IfMatch,
-                Condition = viewAll.ETag                
-            };
-            
-            await UpsertDocument(viewAll, optionsAll);
+            throw new ApplicationException("Could not insert document after retring 10 times, due to concurrency violations");
         }
 
         public async Task UpdateDeviceMaterializedView(Device device)
@@ -128,15 +154,15 @@ namespace Azure.Samples.Processor
             {
                 try
                 {
-                    var result = await _client.UpsertDocumentAsync(_collectionUri, document, options);      
-                    _log.LogInformation($"RU Used: {result.RequestCharge:0.0}");
+                    var result = await _client.UpsertDocumentAsync(_collectionUri, document, options);                      
+                    _log.LogInformation($"{options.PartitionKey} RU Used: {result.RequestCharge:0.0}");
                     return result;                                  
                 }
                 catch (DocumentClientException de)
                 {
                     if (de.StatusCode == HttpStatusCode.TooManyRequests)
                     {
-                        _log.LogInformation($"Waiting for {de.RetryAfter} msec...");
+                        _log.LogWarning($"Waiting for {de.RetryAfter} msec...");
                         await Task.Delay(de.RetryAfter);
                         attempts += 1;
                     }
@@ -145,7 +171,7 @@ namespace Azure.Samples.Processor
                         throw;
                     }
                 }
-            }
+            }            
 
             throw new ApplicationException("Could not insert document after being throttled 3 times");
         }
