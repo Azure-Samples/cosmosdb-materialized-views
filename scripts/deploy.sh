@@ -1,17 +1,20 @@
 #!/bin/bash
 
-export ROOT_NAME='mvsample'
+# generate common uniquifier
+export UNIQUIFIER=`openssl rand 128 -base64 | tr -cd '[:digit:]' | cut -c 1-7`
+
+export ROOT_NAME="mvsample${UNIQUIFIER}"
 export LOCATION='eastus'
 
 export RESOURCE_GROUP=$ROOT_NAME
-export STORAGE_ACCOUNT="${ROOT_NAME}storage"
+export STORAGE_ACCOUNT=$ROOT_NAME
 export COSMOSDB_SERVER_NAME=$ROOT_NAME
 export COSMOSDB_DATABASE_NAME=$ROOT_NAME
 export COSMOSDB_COLLECTION_NAME_RAW='raw'
 export COSMOSDB_COLLECTION_NAME_MV='view'
 export COSMOSDB_RU=1000
-export PLAN_NAME="${ROOT_NAME}plan"
-export FUNCTIONAPP_NAME="MaterializedViewProcessor"
+export PLAN_NAME=$ROOT_NAME
+export FUNCTIONAPP_NAME=$ROOT_NAME
 
 echo "starting deployment: $ROOT_NAME"
 
