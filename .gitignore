@@ -334,3 +334,4 @@ ASALocalRun/
 *.zip
 *.pptx
 mvp2/
+logs/

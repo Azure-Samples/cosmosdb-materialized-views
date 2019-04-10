@@ -19,7 +19,7 @@ A more detailed discussion on the architecture and solution can be found here:
 
 TODO: link to medium article
 
-The sample simulates one or more IoT Devices whose sent data needs to be received and processed in near-real time. Processed means:
+The sample simulates one or more IoT Devices whose generated data needs to be sent, received and processed in near-real time. In this context, "processed" means:
 
 - Provide, for each device, the sum of the sent `value` data and also the last sent value
 - Provide one view with all devices and the last data sent by each one
@@ -67,7 +67,7 @@ The `global` materialized view is where the last value *for each device* is stor
 Values are updated in near-real time by using the Change Feed feature provided by Cosmos DB. The sample is using processing data coming from the Change Feed every second, but it can easily changed to a much lower value if you need more "real time" updates.
 
 - [Trigger Azure Functions from Azure Cosmos DB](https://docs.microsoft.com/en-us/azure/cosmos-db/change-feed-functions)
-- [Azure Function Cosmos DB Triggers](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#trigger---c-attributes) 
+- [Azure Function Cosmos DB Triggers](https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-cosmosdb-v2#trigger---c-attributes)
 
 ## Implementation Notes
 
@@ -125,14 +125,14 @@ The following resources will be created:
 - Application Insight
 - Cosmos DB with 3 Collections (raw and view with 1000 RU each, leases with 400 RU)
 
-By default all deployed resources will have the `mvsample` prefix and the location will be `eastus`.
+By default all deployed resources will have the `mvsample` prefix and the location will be `eastus`. If you don't have any specific naming requirements, by default the generated `ROOT_NAME` will be *uniquified* by postfixing random numbers to make sure you don't have any name collision with someone else trying the sample at the same time.
 
-You can change the following settings
+If needed you can change the following defauly settings
 
-    export ROOT_NAME='mvsample'
+    export ROOT_NAME='mvsample${UNIQUIFIER}'
     export LOCATION='eastus'
 
-in `./script/deploy` to make sure they work for you.
+in `./script/deploy` to make sure they work for you. 
 
 ## Run the Producer application
 
@@ -141,7 +141,7 @@ The producer application will generate sample sensor data as described before. T
     cd sensor-data-producer
     dotnet run 1
 
-The above sample will generate random data for DeviceId 001. If you want to generate more data just specify how many sensor you need to be simulated:
+The above sample will generate random data for device id 001. If you want to generate more data just specify how many sensor you need to be simulated:
 
     dotnet run 10
 
@@ -150,6 +150,14 @@ will generate data for 10 sensors, from 001 to 010. If you want to generate more
     dotnet run 15-25
 
 will generate data with Device Ids starting from 015 up to 025.
+
+### Docker Image
+
+If you want to build and run the simulator using Docker, just run `build.bat` to build the docker image. The run it using
+
+    docker run -it iot-simulator 1-10
+
+to simulate device from 001 to 010, for example.
 
 ## Check results
 
