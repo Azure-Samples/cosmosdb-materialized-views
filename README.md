@@ -17,7 +17,7 @@ Device simulator writes JSON data to Cosmos DB into `raw` collection. Such data 
 
 A more detailed discussion on the architecture and solution can be found here:
 
-TODO: link to medium article
+[Real-Time Materialized Views with Cosmos DB](https://medium.com/@mauridb/real-time-materialized-views-with-cosmos-db-90ecea84f650)
 
 The sample simulates one or more IoT Devices whose generated data needs to be sent, received and processed in near-real time. In this context, "processed" means:
 
