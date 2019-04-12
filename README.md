@@ -123,7 +123,7 @@ The following resources will be created:
 - Azure Storage
 - Azure Function (using Consumption Plan)
 - Application Insight
-- Cosmos DB with 3 Collections (raw and view with 1000 RU each, leases with 400 RU)
+- Cosmos DB with 3 Collections (`raw` and `view` with 1000 RU each, `leases` with 400 RU)
 
 By default all deployed resources will have the `mvsample` prefix and the location will be `eastus`. If you don't have any specific naming requirements, by default the generated `ROOT_NAME` will be *uniquified* by postfixing random numbers to make sure you don't have any name collision with someone else trying the sample at the same time.
 
@@ -132,7 +132,7 @@ If needed you can change the following defauly settings
     export ROOT_NAME='mvsample${UNIQUIFIER}'
     export LOCATION='eastus'
 
-in `./script/deploy` to make sure they work for you. 
+in `./script/deploy` to make sure they work for you.
 
 ## Run the Producer application
 
