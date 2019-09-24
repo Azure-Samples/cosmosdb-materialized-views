@@ -4,8 +4,8 @@ languages:
 - csharp
 products:
 - azure
-description: "This sample shows how materialized view can be kept updated in near-real time using a completely serverless approach with Azure Function, Cosmos DB and Cosmos DB Change Feed"
-urlFragment: cosmosdb-materialized-views
+description: "Shows how materialized view can be kept updated in near-real time using a serverless approach with Azure Functions, Cosmos DB and Cosmos DB Change Feed."
+urlFragment: real-time-view-cosomos-azure-functions
 ---
 
 # Near-Real Time Updated Materialized View With Cosmos DB and Azure Functions
